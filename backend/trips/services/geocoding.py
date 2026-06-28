@@ -31,6 +31,56 @@ class GeocodeResult(TypedDict):
     display_name: str
 
 
+def nominatim_search(query: str, limit: int = 5) -> list:
+    """Rate-limited, cached Nominatim search for autocomplete (proxy endpoint)."""
+    query = (query or "").strip()
+    if not query:
+        return []
+
+    cache_key = "geo_search:" + hashlib.sha1(f"{query}:{limit}".lower().encode()).hexdigest()
+    cached = cache.get(cache_key)
+    if cached is not None:
+        return cached
+
+    params: dict = {"q": query, "format": "json", "limit": limit}
+    if getattr(settings, "NOMINATIM_EMAIL", ""):
+        params["email"] = settings.NOMINATIM_EMAIL
+
+    try:
+        resp = _rate_limited_get(
+            f"{settings.NOMINATIM_BASE_URL}/search",
+            params=params,
+            headers={"User-Agent": settings.NOMINATIM_USER_AGENT},
+        )
+        resp.raise_for_status()
+        data = resp.json()
+        cache.set(cache_key, data, _CACHE_TTL)
+        return data
+    except Exception:
+        return []
+
+
+def nominatim_reverse(lat: str, lon: str) -> dict:
+    """Rate-limited Nominatim reverse geocoding for the proxy endpoint."""
+    cache_key = "geo_rev:" + hashlib.sha1(f"{lat},{lon}".encode()).hexdigest()
+    cached = cache.get(cache_key)
+    if cached is not None:
+        return cached
+
+    try:
+        resp = _rate_limited_get(
+            f"{settings.NOMINATIM_BASE_URL}/reverse",
+            params={"lat": lat, "lon": lon, "format": "json", "zoom": 10},
+            headers={"User-Agent": settings.NOMINATIM_USER_AGENT},
+        )
+        resp.raise_for_status()
+        data = resp.json()
+        cache.set(cache_key, data, _CACHE_TTL)
+        return data
+    except Exception as exc:
+        raise GeocodingError(str(exc)) from exc
+
+
 def _rate_limited_get(url: str, params: dict, headers: dict) -> requests.Response:
     """Make a GET request respecting Nominatim's 1 req/sec limit, with 429 retry."""
     global _last_request_time

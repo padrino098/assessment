@@ -1,10 +1,6 @@
 """Trip API views: orchestrates geocode -> route -> HOS plan -> persist."""
 from __future__ import annotations
 
-from concurrent.futures import ThreadPoolExecutor
-
-import requests as http_requests
-from django.conf import settings
 from django.db import transaction
 from rest_framework import status, viewsets
 from rest_framework.decorators import api_view
@@ -16,46 +12,29 @@ from .serializers import (
     TripDetailSerializer,
     TripListSerializer,
 )
-from .services.geocoding import geocode
+from .services.geocoding import geocode, nominatim_search, nominatim_reverse
 from .services.hos_planner import Leg, plan_trip, split_into_days
 from .services.routing import route as osrm_route
 
 
 @api_view(["GET"])
 def geocode_search(request):
-    """Proxy Nominatim search to avoid browser CORS restrictions."""
+    """Rate-limited, cached proxy for Nominatim search."""
     q = request.GET.get("q", "").strip()
     if not q:
         return Response([], status=200)
-    try:
-        resp = http_requests.get(
-            f"{settings.NOMINATIM_BASE_URL}/search",
-            params={"q": q, "format": "json", "limit": 5},
-            headers={"User-Agent": settings.NOMINATIM_USER_AGENT},
-            timeout=8,
-        )
-        resp.raise_for_status()
-        return Response(resp.json())
-    except Exception:
-        return Response([], status=200)
+    return Response(nominatim_search(q, limit=5))
 
 
 @api_view(["GET"])
 def geocode_reverse(request):
-    """Proxy Nominatim reverse geocoding to avoid browser CORS restrictions."""
+    """Rate-limited, cached proxy for Nominatim reverse geocoding."""
     lat = request.GET.get("lat", "")
     lon = request.GET.get("lon", "")
     if not lat or not lon:
         return Response({"error": "lat and lon required"}, status=400)
     try:
-        resp = http_requests.get(
-            f"{settings.NOMINATIM_BASE_URL}/reverse",
-            params={"lat": lat, "lon": lon, "format": "json", "zoom": 10},
-            headers={"User-Agent": settings.NOMINATIM_USER_AGENT},
-            timeout=8,
-        )
-        resp.raise_for_status()
-        return Response(resp.json())
+        return Response(nominatim_reverse(lat, lon))
     except Exception as exc:
         return Response({"error": str(exc)}, status=502)
 
@@ -76,14 +55,10 @@ class TripViewSet(viewsets.ModelViewSet):
         in_ser.is_valid(raise_exception=True)
         data = in_ser.validated_data
 
-        # 1. Geocode all three addresses in parallel
-        with ThreadPoolExecutor(max_workers=3) as pool:
-            cur_f = pool.submit(geocode, data["current_location"])
-            pu_f = pool.submit(geocode, data["pickup_location"])
-            do_f = pool.submit(geocode, data["dropoff_location"])
-            cur_g = cur_f.result()
-            pu_g = pu_f.result()
-            do_g = do_f.result()
+        # 1. Geocode all three addresses sequentially (Nominatim 1 req/sec limit)
+        cur_g = geocode(data["current_location"])
+        pu_g = geocode(data["pickup_location"])
+        do_g = geocode(data["dropoff_location"])
 
         # 2. Route in two legs so we get per-leg miles
         leg1 = osrm_route([(cur_g["lat"], cur_g["lng"]), (pu_g["lat"], pu_g["lng"])])

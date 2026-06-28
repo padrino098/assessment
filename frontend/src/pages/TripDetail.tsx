@@ -1,4 +1,5 @@
-import { useParams, Link } from "react-router-dom";
+import { useParams, Link, useNavigate } from "react-router-dom";
+import { useEffect } from "react";
 import { useTrip } from "../api/client";
 import MapView from "../components/MapView";
 import StopsTimeline from "../components/StopsTimeline";
@@ -16,7 +17,18 @@ function StatCard({ label, value }: { label: string; value: string }) {
 
 export default function TripDetail() {
   const { id } = useParams<{ id: string }>();
-  const { data: trip, isLoading, isError } = useTrip(id);
+  const navigate = useNavigate();
+  const { data: trip, isLoading, isError, error } = useTrip(id);
+
+  // Redirect to history if trip was deleted (404)
+  useEffect(() => {
+    if (isError) {
+      const status = (error as { response?: { status?: number } })?.response?.status;
+      if (status === 404) {
+        navigate("/history", { replace: true });
+      }
+    }
+  }, [isError, error, navigate]);
 
   if (isLoading) {
     return (
