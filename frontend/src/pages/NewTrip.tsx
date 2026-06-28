@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { useCreateTrip } from "../api/client";
+import { useCreateTrip, api } from "../api/client";
 import AsyncSelect from "react-select/async";
 
 const EXAMPLES = [
@@ -54,8 +54,8 @@ export default function NewTrip() {
     setErrors(e => ({ ...e, current_cycle_used_hrs: "" }));
     try {
       const [currentGeo, pickupGeo] = await Promise.all([
-        fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(currentLoc)}&format=json&limit=1`).then(r => r.json()),
-        fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(pickupLoc)}&format=json&limit=1`).then(r => r.json()),
+        api.get(`/api/geocode/search/?q=${encodeURIComponent(currentLoc)}`).then(r => r.data),
+        api.get(`/api/geocode/search/?q=${encodeURIComponent(pickupLoc)}`).then(r => r.data),
       ]);
       if (!currentGeo[0] || !pickupGeo[0]) return;
 
@@ -85,8 +85,7 @@ export default function NewTrip() {
   const loadOptions = async (inputValue: string) => {
     if (!inputValue || inputValue.length < 3) return [];
     try {
-      const res = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(inputValue)}&format=json&limit=5`);
-      const data = await res.json();
+      const { data } = await api.get(`/api/geocode/search/?q=${encodeURIComponent(inputValue)}`);
       return data.map((item: any) => ({
         label: item.display_name,
         value: item.display_name
@@ -157,12 +156,11 @@ export default function NewTrip() {
     navigator.geolocation.getCurrentPosition(
       async (position) => {
         try {
-          // Reverse geocode the coords via Nominatim
+          // Reverse geocode the coords via backend proxy
           const { latitude, longitude } = position.coords;
-          const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&zoom=10`);
-          if (!res.ok) throw new Error("Failed to resolve address");
+          const { data } = await api.get(`/api/geocode/reverse/?lat=${latitude}&lon=${longitude}`);
+          if (!data || data.error) throw new Error("Failed to resolve address");
           
-          const data = await res.json();
           let locationStr = data.display_name;
           
           // Try to simplify the returned address string to City, State (if possible)

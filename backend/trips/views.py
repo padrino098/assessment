@@ -3,8 +3,11 @@ from __future__ import annotations
 
 from concurrent.futures import ThreadPoolExecutor
 
+import requests as http_requests
+from django.conf import settings
 from django.db import transaction
 from rest_framework import status, viewsets
+from rest_framework.decorators import api_view
 from rest_framework.response import Response
 
 from .models import DailyLog, Stop, Trip
@@ -16,6 +19,45 @@ from .serializers import (
 from .services.geocoding import geocode
 from .services.hos_planner import Leg, plan_trip, split_into_days
 from .services.routing import route as osrm_route
+
+
+@api_view(["GET"])
+def geocode_search(request):
+    """Proxy Nominatim search to avoid browser CORS restrictions."""
+    q = request.GET.get("q", "").strip()
+    if not q:
+        return Response([], status=200)
+    try:
+        resp = http_requests.get(
+            f"{settings.NOMINATIM_BASE_URL}/search",
+            params={"q": q, "format": "json", "limit": 5},
+            headers={"User-Agent": settings.NOMINATIM_USER_AGENT},
+            timeout=8,
+        )
+        resp.raise_for_status()
+        return Response(resp.json())
+    except Exception:
+        return Response([], status=200)
+
+
+@api_view(["GET"])
+def geocode_reverse(request):
+    """Proxy Nominatim reverse geocoding to avoid browser CORS restrictions."""
+    lat = request.GET.get("lat", "")
+    lon = request.GET.get("lon", "")
+    if not lat or not lon:
+        return Response({"error": "lat and lon required"}, status=400)
+    try:
+        resp = http_requests.get(
+            f"{settings.NOMINATIM_BASE_URL}/reverse",
+            params={"lat": lat, "lon": lon, "format": "json", "zoom": 10},
+            headers={"User-Agent": settings.NOMINATIM_USER_AGENT},
+            timeout=8,
+        )
+        resp.raise_for_status()
+        return Response(resp.json())
+    except Exception as exc:
+        return Response({"error": str(exc)}, status=502)
 
 
 class TripViewSet(viewsets.ModelViewSet):
