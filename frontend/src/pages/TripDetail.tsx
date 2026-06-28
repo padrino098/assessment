@@ -86,27 +86,29 @@ export default function TripDetail() {
         </div>
       </div>
 
-      {/* Two-column: stops + logs */}
-      <div className="grid grid-cols-1 lg:grid-cols-[320px_1fr] gap-8 items-start pt-4">
-        {/* Stops */}
-        <div>
-          <h2 className="text-lg font-semibold text-slate-200 mb-4">Stops & Events</h2>
-          <div className="card p-5 bg-slate-900/30">
-            <StopsTimeline stops={trip.stops} />
-          </div>
+      {/* Stops - full width landscape */}
+      <div>
+        <h2 className="text-lg font-semibold text-slate-200 mb-4 flex items-center gap-2">
+          <svg className="w-5 h-5 text-brand-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
+          </svg>
+          Stops & Events
+        </h2>
+        <div className="card p-5 bg-slate-900/30">
+          <StopsTimeline stops={trip.stops} />
         </div>
+      </div>
 
-        {/* ELD Logs */}
-        <div>
-          <h2 className="text-lg font-semibold text-slate-200 mb-4 flex items-center">
-            Daily ELD Log Sheets
-            <span className="ml-3 px-2 py-0.5 rounded-full bg-brand-500/10 text-brand-400 text-xs font-bold border border-brand-500/20">
-              {trip.daily_logs.length} {trip.daily_logs.length === 1 ? "day" : "days"}
-            </span>
-          </h2>
-          <div className="card overflow-hidden">
-            <LogsCarousel logs={trip.daily_logs} />
-          </div>
+      {/* ELD Logs - full width */}
+      <div>
+        <h2 className="text-lg font-semibold text-slate-200 mb-4 flex items-center">
+          Daily ELD Log Sheets
+          <span className="ml-3 px-2 py-0.5 rounded-full bg-brand-500/10 text-brand-400 text-xs font-bold border border-brand-500/20">
+            {trip.daily_logs.length} {trip.daily_logs.length === 1 ? "day" : "days"}
+          </span>
+        </h2>
+        <div className="card overflow-hidden">
+          <LogsCarousel logs={trip.daily_logs} />
         </div>
       </div>
 
