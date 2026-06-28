@@ -10,8 +10,8 @@ export default function App() {
       <Routes>
         <Route element={<Layout />}>
           <Route path="/" element={<NewTrip />} />
-          <Route path="/trips/:id" element={<TripDetail />} />
           <Route path="/trips" element={<History />} />
+          <Route path="/trips/:id" element={<TripDetail />} />
         </Route>
       </Routes>
     </BrowserRouter>

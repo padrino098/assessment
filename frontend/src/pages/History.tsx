@@ -6,11 +6,11 @@ export default function History() {
   const { data, isLoading, isError } = useTrips();
 
   return (
-    <div className="max-w-4xl mx-auto px-4 sm:px-6 py-10">
-      <div className="flex items-center justify-between mb-6">
+    <div className="max-w-4xl mx-auto px-4 sm:px-6 py-10 relative z-10">
+      <div className="flex items-center justify-between mb-8">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900">Trip History</h1>
-          <p className="text-sm text-slate-500 mt-0.5">
+          <h1 className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-slate-100 to-slate-400">Trip History</h1>
+          <p className="text-sm text-slate-400 mt-1">
             {data?.count ?? 0} {data?.count === 1 ? "trip" : "trips"} planned
           </p>
         </div>
@@ -21,58 +21,58 @@ export default function History() {
 
       {isLoading && (
         <div className="flex items-center gap-3 py-12 justify-center">
-          <svg className="animate-spin w-5 h-5 text-brand-600" fill="none" viewBox="0 0 24 24">
+          <svg className="animate-spin w-5 h-5 text-brand-500" fill="none" viewBox="0 0 24 24">
             <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
             <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
           </svg>
-          <span className="text-slate-500 text-sm">Loading…</span>
+          <span className="text-slate-400 text-sm">Loading…</span>
         </div>
       )}
 
       {isError && (
-        <div className="card px-5 py-4 text-sm text-red-600">
+        <div className="card px-5 py-4 text-sm text-red-400 bg-red-500/10 border-red-500/20">
           Failed to load trip history.
         </div>
       )}
 
       {!isLoading && !isError && data?.results.length === 0 && (
-        <div className="card px-6 py-12 text-center">
-          <p className="text-slate-500 mb-4">No trips yet.</p>
+        <div className="card px-6 py-12 text-center text-slate-300">
+          <p className="text-slate-400 mb-6">No trips yet.</p>
           <Link to="/" className="btn-primary">
             Plan your first trip →
           </Link>
         </div>
       )}
 
-      <ul className="space-y-3">
+      <ul className="space-y-4">
         {data?.results.map((trip) => (
           <li key={trip.id}>
             <Link
               to={`/trips/${trip.id}`}
-              className="card px-5 py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:border-brand-200 hover:shadow-md transition-all duration-150 block"
+              className="card px-5 py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:border-brand-500/50 hover:bg-slate-800/60 transition-all duration-200 block group"
             >
               <div className="min-w-0">
-                <p className="font-semibold text-slate-900 truncate">
+                <p className="font-semibold text-slate-100 truncate group-hover:text-brand-400 transition-colors">
                   {trip.pickup_location} → {trip.dropoff_location}
                 </p>
-                <p className="text-xs text-slate-400 mt-0.5">
+                <p className="text-sm text-slate-400 mt-1">
                   From {trip.current_location} · {trip.current_cycle_used_hrs} hrs cycle used
                 </p>
               </div>
-              <div className="flex items-center gap-4 shrink-0">
+              <div className="flex items-center gap-6 shrink-0">
                 <div className="text-right hidden sm:block">
-                  <p className="text-sm font-semibold text-slate-700">{fmtMiles(trip.total_distance_mi)}</p>
-                  <p className="text-xs text-slate-400">{fmtHours(trip.total_duration_hrs)}</p>
+                  <p className="text-sm font-semibold text-slate-200">{fmtMiles(trip.total_distance_mi)}</p>
+                  <p className="text-xs text-slate-500">{fmtHours(trip.total_duration_hrs)}</p>
                 </div>
                 <div className="text-right">
-                  <span className="inline-block text-xs font-bold px-2 py-0.5 rounded-full bg-brand-50 text-brand-700">
+                  <span className="inline-block text-xs font-bold px-2.5 py-1 rounded-full bg-brand-500/10 text-brand-400 border border-brand-500/20">
                     {trip.days_required} {trip.days_required === 1 ? "day" : "days"}
                   </span>
-                  <p className="text-xs text-slate-400 mt-1">
+                  <p className="text-[11px] text-slate-500 mt-1.5 uppercase tracking-wider">
                     {new Date(trip.created_at).toLocaleDateString()}
                   </p>
                 </div>
-                <svg className="w-4 h-4 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-5 h-5 text-slate-600 group-hover:text-brand-400 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                 </svg>
               </div>

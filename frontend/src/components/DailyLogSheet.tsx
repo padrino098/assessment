@@ -107,17 +107,21 @@ export default function DailyLogSheet({ log, dayTotal }: Props) {
       style={{ fontFamily: "Inter, ui-sans-serif, system-ui" }}
     >
       {/* ── Background ── */}
-      <rect width={W} height={H} fill="#fff" rx="12" />
+      <rect width={W} height={H} fill="#0f172a" rx="12" className="print:fill-white" />
 
       {/* ── Header strip ── */}
-      <rect x={0} y={0} width={W} height={MARGIN_T - 4} fill="#1e3a8a" rx="12" />
-      <rect x={0} y={MARGIN_T - 16} width={W} height={16} fill="#1e3a8a" />
+      <rect x={0} y={0} width={W} height={MARGIN_T - 4} fill="#1e3a8a" rx="12" className="print:hidden" />
+      <rect x={0} y={MARGIN_T - 16} width={W} height={16} fill="#1e3a8a" className="print:hidden" />
+      
+      {/* Light header for print only */}
+      <rect x={0} y={0} width={W} height={MARGIN_T - 4} fill="#f1f5f9" rx="12" className="hidden print:block" />
+      <rect x={0} y={MARGIN_T - 16} width={W} height={16} fill="#f1f5f9" className="hidden print:block" />
 
-      <text x={18} y={26} fill="#fff" fontSize={13} fontWeight="700">
+      <text x={18} y={26} fill="#f8fafc" className="print:fill-[#0f172a]" fontSize={13} fontWeight="700">
         DRIVER'S DAILY LOG — 24-HOUR PERIOD
       </text>
 
-      <text x={18} y={46} fill="#93c5fd" fontSize={11}>
+      <text x={18} y={46} fill="#93c5fd" className="print:fill-[#475569]" fontSize={11}>
         Day {log.day_index} of {dayTotal}
       </text>
 
@@ -128,10 +132,10 @@ export default function DailyLogSheet({ log, dayTotal }: Props) {
         ["MILES DRIVEN", `${log.miles_driven.toLocaleString()} mi`, 680],
       ].map(([label, value, x]) => (
         <g key={String(x)}>
-          <text x={Number(x)} y={30} fill="#93c5fd" fontSize={9} fontWeight="600">
+          <text x={Number(x)} y={30} fill="#93c5fd" className="print:fill-[#64748b]" fontSize={9} fontWeight="600">
             {label}
           </text>
-          <text x={Number(x)} y={48} fill="#fff" fontSize={11} fontWeight="500">
+          <text x={Number(x)} y={48} fill="#f8fafc" className="print:fill-[#0f172a]" fontSize={11} fontWeight="500">
             {String(value)}
           </text>
         </g>
@@ -147,7 +151,8 @@ export default function DailyLogSheet({ log, dayTotal }: Props) {
               y={MARGIN_T - 8}
               textAnchor="middle"
               fontSize={9}
-              fill="#475569"
+              fill="#94a3b8"
+              className="print:fill-[#475569]"
               fontWeight={h % 6 === 0 ? "700" : "400"}
             >
               {h === 0 ? "MID" : h === 12 ? "NOON" : h === 24 ? "MID" : String(h)}
@@ -167,7 +172,8 @@ export default function DailyLogSheet({ log, dayTotal }: Props) {
               y={y}
               width={GRID_W}
               height={ROW_H}
-              fill={ri % 2 === 0 ? "#f8fafc" : "#f1f5f9"}
+              fill={ri % 2 === 0 ? "#1e293b" : "#0f172a"}
+              className="print:fill-[#f8fafc] print:even:fill-[#ffffff]"
             />
             {/* Row label */}
             <text
@@ -175,7 +181,8 @@ export default function DailyLogSheet({ log, dayTotal }: Props) {
               y={y + ROW_H / 2 + 4}
               textAnchor="end"
               fontSize={9}
-              fill="#334155"
+              fill="#cbd5e1"
+              className="print:fill-[#334155]"
               fontWeight="600"
             >
               {ROW_LABELS[row].split("\n").map((line, i) => (
@@ -197,7 +204,8 @@ export default function DailyLogSheet({ log, dayTotal }: Props) {
                   y1={y}
                   x2={x}
                   y2={y + ROW_H}
-                  stroke={isMajor ? "#cbd5e1" : "#e2e8f0"}
+                  stroke={isMajor ? "#334155" : "#1e293b"}
+                  className="print:stroke-[#cbd5e1]"
                   strokeWidth={isMajor ? 0.8 : 0.4}
                 />
               );
@@ -214,7 +222,7 @@ export default function DailyLogSheet({ log, dayTotal }: Props) {
                   width={Math.max(1, xOf(s.end_min) - xOf(s.start_min))}
                   height={ROW_H * 0.5}
                   fill={ROW_COLORS[row]}
-                  opacity={0.18}
+                  opacity={0.3}
                   rx={2}
                 />
               ))}
@@ -226,7 +234,8 @@ export default function DailyLogSheet({ log, dayTotal }: Props) {
               width={GRID_W}
               height={ROW_H}
               fill="none"
-              stroke="#cbd5e1"
+              stroke="#334155"
+              className="print:stroke-[#cbd5e1]"
               strokeWidth={0.8}
             />
 
@@ -267,10 +276,12 @@ export default function DailyLogSheet({ log, dayTotal }: Props) {
         <path
           d={linePath}
           fill="none"
-          stroke="#1d4ed8"
-          strokeWidth={2.5}
+          stroke="#60a5fa"
+          className="print:stroke-[#1d4ed8]"
+          strokeWidth={3}
           strokeLinejoin="round"
           strokeLinecap="round"
+          style={{ filter: "drop-shadow(0 2px 4px rgba(96,165,250,0.5))" }}
         />
       )}
 
@@ -280,8 +291,9 @@ export default function DailyLogSheet({ log, dayTotal }: Props) {
         y={MARGIN_T + GRID_H + 4}
         width={GRID_W}
         height={MARGIN_B - 10}
-        fill="#f8fafc"
-        stroke="#e2e8f0"
+        fill="#1e293b"
+        className="print:fill-[#f8fafc] print:stroke-[#e2e8f0]"
+        stroke="#334155"
         strokeWidth={0.8}
         rx={4}
       />
@@ -294,7 +306,8 @@ export default function DailyLogSheet({ log, dayTotal }: Props) {
             y={MARGIN_T + GRID_H + 22}
             textAnchor="middle"
             fontSize={8}
-            fill="#475569"
+            fill="#94a3b8"
+            className="print:fill-[#475569]"
           >
             {texts[0]}
           </text>
@@ -308,7 +321,8 @@ export default function DailyLogSheet({ log, dayTotal }: Props) {
         width={GRID_W}
         height={GRID_H}
         fill="none"
-        stroke="#94a3b8"
+        stroke="#475569"
+        className="print:stroke-[#94a3b8]"
         strokeWidth={1}
       />
 
@@ -319,7 +333,8 @@ export default function DailyLogSheet({ log, dayTotal }: Props) {
         textAnchor="middle"
         fontSize={9}
         fontWeight="700"
-        fill="#475569"
+        fill="#94a3b8"
+        className="print:fill-[#475569]"
         letterSpacing="0.05em"
       >
         TOTALS

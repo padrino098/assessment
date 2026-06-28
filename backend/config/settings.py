@@ -97,6 +97,7 @@ NOMINATIM_BASE_URL = config(
 NOMINATIM_USER_AGENT = config(
     "NOMINATIM_USER_AGENT", default="eld-trip-planner/1.0"
 )
+NOMINATIM_EMAIL = config("NOMINATIM_EMAIL", default="")
 
 CACHES = {
     "default": {
