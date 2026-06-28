@@ -47,3 +47,15 @@ export function useCreateTrip() {
     },
   });
 }
+
+export function useDeleteTrip() {
+  const qc = useQueryClient();
+  return useMutation<void, Error, number>({
+    mutationFn: async (id) => {
+      await api.delete(`/api/trips/${id}/`);
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["trips"] });
+    },
+  });
+}
