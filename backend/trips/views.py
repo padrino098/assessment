@@ -62,7 +62,7 @@ def geocode_reverse(request):
 
 class TripViewSet(viewsets.ModelViewSet):
     queryset = Trip.objects.all().prefetch_related("stops", "daily_logs")
-    http_method_names = ["get", "post", "head", "options"]
+    http_method_names = ["get", "post", "delete", "head", "options"]
 
     def get_serializer_class(self):
         if self.action == "list":
