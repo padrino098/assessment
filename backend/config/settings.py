@@ -9,6 +9,8 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = config("SECRET_KEY", default="dev-secret-change-me")
 DEBUG = config("DEBUG", default=False, cast=bool)
 ALLOWED_HOSTS = config("ALLOWED_HOSTS", default="localhost,127.0.0.1", cast=Csv())
+# Always allow Render's domain so ALLOWED_HOSTS env var doesn't need to be exact
+ALLOWED_HOSTS += [".onrender.com"]
 
 INSTALLED_APPS = [
     "django.contrib.admin",
